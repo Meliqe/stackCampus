@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res) => {
   //Express her zaman: 1. istek (request), 2. yanıt (response) gönderir sırayı değiştiremezsin
@@ -57,7 +58,16 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Şifre Hatalı!" });
     }
 
-    res.status(200).json({ message: "Giriş Başarılı", userId: user._id }); //json a istediğimizi ekleyebiliriz
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+    res
+      .status(200)
+      .json({ message: "Giriş Başarılı", userId: user._id, token }); //json a istediğimizi ekleyebiliriz
   } catch (error) {
     console.error("Giriş Hatası:", error.message);
     res.status(500).json({ message: "Sunucu Hatası" });
